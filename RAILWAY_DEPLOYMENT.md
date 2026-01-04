@@ -12,59 +12,74 @@ This guide will help you deploy your Car Repair Shop application (backend and fr
 
 ## Deployment Steps
 
-### Step 1: Connect Repository to Railway
+### Step 1: Connect Repository to Railway (Backend Service)
 
 1. Go to [Railway Dashboard](https://railway.com/dashboard)
 2. Click **"New Project"**
 3. Select **"Deploy from GitHub repo"**
 4. Choose your repository: `ahakimov/carrepairshop`
-5. Railway will create a service, but **DO NOT deploy yet** - we need to configure it first
+5. Railway will create a service - this will be your **BACKEND** service
 
-### Step 2: Add PostgreSQL Database
+### Step 2: Configure Backend Service
+
+1. Click on the service that was just created
+2. Go to **"Settings"** (gear icon)
+3. **IMPORTANT**: Find **"Root Directory"** field and set it to: `car_service_back`
+4. Go to **"Variables"** tab and add:
+   - `SPRING_PROFILES_ACTIVE` = `prod`
+5. Save the settings
+6. The backend should now build and deploy
+
+### Step 3: Add PostgreSQL Database
 
 1. In your Railway project, click **"New"** → **"Database"** → **"Add PostgreSQL"**
 2. Railway will automatically create a PostgreSQL database
-3. The `DATABASE_URL` environment variable will be automatically added when you connect services
-
-### Step 3: Deploy Backend Service
-
-1. **If you already created a service from Step 1, delete it first** (or create a new one)
-2. Click **"New Service"** → **"GitHub Repo"** → select your repository `ahakimov/carrepairshop`
-3. **IMPORTANT**: In the service settings, find **"Root Directory"** and set it to: `car_service_back`
-4. Railway will auto-detect it's a Java/Maven project
-5. In **"Settings"** → **"Variables"**, add:
-   - `SPRING_PROFILES_ACTIVE` = `prod`
-6. Connect the PostgreSQL database to this service:
+3. Connect the database to your backend service:
    - Click on your backend service
    - Go to **"Variables"** tab
    - Click **"Add Reference"** → Select your PostgreSQL database
-   - This will automatically add `DATABASE_URL`
-7. The service should now build and deploy automatically
+   - This will automatically add `DATABASE_URL` environment variable
 
-### Step 4: Deploy Frontend Service
+### Step 4: Create Frontend Service
 
-1. Click **"New Service"** → **"GitHub Repo"** → select your repository `ahakimov/carrepairshop`
-2. **IMPORTANT**: In the service settings, find **"Root Directory"** and set it to: `car_service_front`
-3. Railway will auto-detect it's a Node.js/Next.js project
-4. In **"Settings"** → **"Variables"**, add:
+**IMPORTANT**: You need to create a SECOND service for the frontend!
+
+1. In your Railway project, click **"New"** (or the **"+"** button)
+2. Select **"GitHub Repo"**
+3. Choose the same repository: `ahakimov/carrepairshop`
+4. **IMPORTANT**: In the service settings, find **"Root Directory"** and set it to: `car_service_front`
+5. Railway will auto-detect it's a Node.js/Next.js project
+6. In **"Settings"** → **"Variables"**, add:
    - `NODE_ENV` = `production`
-   - `NEXT_PUBLIC_API_URL` = `https://your-backend-service.railway.app` 
-     - **Note**: Get this URL from your backend service after it deploys (it will be in the format: `https://your-service-name.up.railway.app`)
-5. The service should now build and deploy automatically
+   - `NEXT_PUBLIC_API_URL` = `https://your-backend-service.up.railway.app` 
+     - **Note**: Get this URL from your backend service after it deploys successfully
+     - You can find it in the backend service's "Settings" → "Domains" section
+7. The frontend service should now build and deploy automatically
 
 ### Step 5: Get Your Deployment URLs
 
-1. After deployment, Railway will provide URLs for each service
-2. Backend URL will be something like: `https://your-backend-service.up.railway.app`
-3. Frontend URL will be something like: `https://your-frontend-service.up.railway.app`
-4. **Update the frontend's `NEXT_PUBLIC_API_URL`** with the backend URL if you haven't already
+1. After deployment, Railway will provide URLs for each service:
+   - **Backend URL**: Found in backend service → Settings → Domains
+     - Format: `https://your-backend-service.up.railway.app`
+   - **Frontend URL**: Found in frontend service → Settings → Domains
+     - Format: `https://your-frontend-service.up.railway.app`
+2. **Update the frontend's `NEXT_PUBLIC_API_URL`** with the backend URL if you haven't already
 
 ### Step 6: Verify Deployment
 
 1. Check backend health: `https://your-backend-service.up.railway.app/actuator/health`
-   - If this doesn't work, check if you have actuator dependency in pom.xml
+   - Should return: `{"status":"UP"}`
 2. Check frontend: `https://your-frontend-service.up.railway.app`
 3. Test API endpoints from the frontend
+
+## Visual Guide: Creating Second Service
+
+When you're in your Railway project dashboard:
+1. You'll see your backend service (already created)
+2. Click the **"+"** or **"New"** button (usually at the top or bottom of the services list)
+3. Select **"GitHub Repo"**
+4. Choose `ahakimov/carrepairshop` again
+5. **Before deploying**, go to Settings → Root Directory → Set to `car_service_front`
 
 ## Troubleshooting
 
@@ -84,6 +99,7 @@ This guide will help you deploy your Car Repair Shop application (backend and fr
 - **Build fails**: Check that Root Directory is set to `car_service_back`
 - **Database connection fails**: Verify `DATABASE_URL` is set (should be automatic when you connect PostgreSQL)
 - **Port issues**: Railway sets `PORT` automatically, make sure your app uses `${PORT:8080}` in application.properties
+- **Healthcheck fails**: Check that Actuator is working at `/actuator/health`
 - Check logs in Railway dashboard
 
 ### Frontend Issues:
@@ -91,6 +107,15 @@ This guide will help you deploy your Car Repair Shop application (backend and fr
 - **API calls fail**: Verify `NEXT_PUBLIC_API_URL` points to correct backend URL
 - **Build errors**: Check that all dependencies are in `package.json`
 - Check logs in Railway dashboard
+
+### "I only see one service option"
+
+If you only see one service:
+1. You need to manually create a second service
+2. Click **"New"** or **"+"** button in your Railway project
+3. Select **"GitHub Repo"** again
+4. Choose the same repository
+5. Set Root Directory to the appropriate folder
 
 ## Configuration Files
 
@@ -107,3 +132,4 @@ The following files are already configured:
 - Database migrations will run automatically on startup (ddl-auto=update)
 - Railway provides automatic scaling and monitoring
 - **Always set Root Directory in service settings, not in code**
+- **You need TWO separate services** - one for backend, one for frontend

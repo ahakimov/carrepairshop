@@ -24,10 +24,29 @@ public class DatabaseConfig {
         }
 
         try {
-            URI dbUri = new URI(databaseUrl.replace("postgresql://", "http://"));
-            String username = dbUri.getUserInfo().split(":")[0];
-            String password = dbUri.getUserInfo().split(":")[1];
-            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+            // Handle Railway's DATABASE_URL format: postgresql://user:password@host:port/database
+            String url = databaseUrl;
+            if (url.startsWith("postgresql://")) {
+                url = url.replace("postgresql://", "http://");
+            }
+            URI dbUri = new URI(url);
+            
+            String userInfo = dbUri.getUserInfo();
+            if (userInfo == null || !userInfo.contains(":")) {
+                throw new IllegalArgumentException("Invalid DATABASE_URL format: missing user info");
+            }
+            
+            String[] credentials = userInfo.split(":", 2);
+            String username = credentials[0];
+            String password = credentials.length > 1 ? credentials[1] : "";
+            
+            int port = dbUri.getPort() > 0 ? dbUri.getPort() : 5432;
+            String path = dbUri.getPath();
+            if (path != null && path.startsWith("/")) {
+                path = path.substring(1); // Remove leading slash
+            }
+            
+            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + port + "/" + path;
 
             return DataSourceBuilder.create()
                     .url(dbUrl)
@@ -36,6 +55,9 @@ public class DatabaseConfig {
                     .driverClassName("org.postgresql.Driver")
                     .build();
         } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Error parsing DATABASE_URL: " + e.getMessage());
+            e.printStackTrace();
             // Fallback to default Spring Boot auto-configuration
             return DataSourceBuilder.create().build();
         }
