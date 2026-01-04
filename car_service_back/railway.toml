@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 
 [deploy]
 startCommand = "java -jar target/car-repair-shop-0.0.1-SNAPSHOT.jar"
-healthcheckPath = "/actuator/health"
+healthcheckPath = "/health"
 healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
