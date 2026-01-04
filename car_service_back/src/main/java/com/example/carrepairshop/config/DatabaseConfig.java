@@ -18,7 +18,11 @@ public class DatabaseConfig {
 
     @Bean
     public DataSource dataSource() {
+        System.out.println("=== DatabaseConfig: Initializing DataSource ===");
+        System.out.println("DATABASE_URL is " + (databaseUrl == null || databaseUrl.isEmpty() ? "NOT SET" : "SET"));
+        
         if (databaseUrl == null || databaseUrl.isEmpty()) {
+            System.out.println("WARNING: DATABASE_URL is not set. Using default Spring Boot auto-configuration.");
             // Fallback to default Spring Boot auto-configuration
             return DataSourceBuilder.create().build();
         }
@@ -33,6 +37,7 @@ public class DatabaseConfig {
             
             String userInfo = dbUri.getUserInfo();
             if (userInfo == null || !userInfo.contains(":")) {
+                System.err.println("ERROR: Invalid DATABASE_URL format: missing user info");
                 throw new IllegalArgumentException("Invalid DATABASE_URL format: missing user info");
             }
             
@@ -47,6 +52,8 @@ public class DatabaseConfig {
             }
             
             String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + port + "/" + path;
+            
+            System.out.println("Connecting to database: " + dbUri.getHost() + ":" + port + "/" + path);
 
             return DataSourceBuilder.create()
                     .url(dbUrl)
@@ -56,8 +63,9 @@ public class DatabaseConfig {
                     .build();
         } catch (Exception e) {
             // Log the error for debugging
-            System.err.println("Error parsing DATABASE_URL: " + e.getMessage());
+            System.err.println("ERROR: Failed to parse DATABASE_URL: " + e.getMessage());
             e.printStackTrace();
+            System.err.println("Falling back to default Spring Boot auto-configuration");
             // Fallback to default Spring Boot auto-configuration
             return DataSourceBuilder.create().build();
         }
