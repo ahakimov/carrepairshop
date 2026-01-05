@@ -81,3 +81,8 @@ next-env.d.ts
 # OS
 Thumbs.db
 .DS_Store
+
+# Documentation files (learning/guide files - not for production)
+*.md
+!README.md
+!car_service_front/README.md

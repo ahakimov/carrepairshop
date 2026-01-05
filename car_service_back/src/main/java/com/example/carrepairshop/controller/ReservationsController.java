@@ -25,25 +25,39 @@ public class ReservationsController {
     }
 
     @GetMapping("{id}")
-    public Reservation getReservation(@PathVariable String id) {
-        return reservationsService.findById(id).orElse(null);
+    public ResponseEntity<Reservation> getReservation(@PathVariable Long id) {
+        return reservationsService.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping
-    public ResponseEntity<Reservation> updateReservation(@RequestBody Reservation reservation) {
-        return ResponseEntity.ok(reservationsService.updateReservation(reservation));
+    public ResponseEntity<?> updateReservation(@RequestBody Reservation reservation) {
+        try {
+            return ResponseEntity.ok(reservationsService.updateReservation(reservation));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(e.getMessage()); // Conflict
+        }
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteReservation(@PathVariable String id) {
+    public ResponseEntity<String> deleteReservation(@PathVariable Long id) {
         reservationsService.deleteReservation(id);
 
         return ResponseEntity.ok("Deleted");
     }
 
     @PostMapping("new")
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        return ResponseEntity.ok(reservationsService.createReservation(reservation));
+    public ResponseEntity<?> createReservation(@RequestBody Reservation reservation) {
+        try {
+            return ResponseEntity.ok(reservationsService.createReservation(reservation));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(e.getMessage()); // Conflict
+        }
     }
 
     @GetMapping("schedule")

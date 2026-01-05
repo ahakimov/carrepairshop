@@ -5,7 +5,7 @@ nixPkgs = ["maven", "jdk21"]
 cmds = ["mvn clean package -DskipTests"]
 
 [start]
-cmd = "java -jar target/car-repair-shop-0.0.1-SNAPSHOT.jar"
+cmd = "java -Xmx512m -Xms256m -jar target/car-repair-shop-0.0.1-SNAPSHOT.jar"
 
 [variables]
 SPRING_PROFILES_ACTIVE = "prod"

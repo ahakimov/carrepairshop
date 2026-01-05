@@ -1,5 +1,6 @@
 package com.example.carrepairshop.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,14 +18,16 @@ public class HealthController {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
         response.put("message", "Service is running");
-        return ResponseEntity.ok(response);
+        response.put("timestamp", java.time.Instant.now().toString());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("health")
     public ResponseEntity<Map<String, String>> simpleHealth() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
-        return ResponseEntity.ok(response);
+        response.put("timestamp", java.time.Instant.now().toString());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
 

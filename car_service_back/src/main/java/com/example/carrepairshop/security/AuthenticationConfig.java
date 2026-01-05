@@ -17,13 +17,14 @@ public class AuthenticationConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/**").hasAnyAuthority(ADMIN, USER)
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyAuthority(ADMIN, USER)
-                        .requestMatchers("/api/books", "/api/books/**").hasAuthority(ADMIN)
-                        .requestMatchers("/api/users", "/api/users/**").hasAuthority(ADMIN)
+                        // Public endpoints
                         .requestMatchers("/public/**", "/auth/**").permitAll()
                         .requestMatchers("/", "/health", "/error", "/csrf", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        // API endpoints - make GET requests public for testing, POST/PUT/DELETE require auth
+                        .requestMatchers(HttpMethod.GET, "/reservations/**", "/cars/**", "/clients/**", "/mechanics/**", "/services/**", "/repair-jobs/**").permitAll()
+                        .requestMatchers("/api/books", "/api/books/**", "/api/users", "/api/users/**").hasAuthority(ADMIN)
+                        // All other requests require authentication
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
